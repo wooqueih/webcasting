@@ -29,21 +29,53 @@ var player = {
 }
 const DEGREES_IN_RADIANS = 0.0174533;
 const FOV = 100.0;
-const DOF = 20.0;
+const DOF = 500.0;
 
 const MOVE_SPEED = 0.003;
 const TURN_SPEED = 0.005;
 
 const map = {
-	height: 4,
-	width: 5,
-	data: [0, 1, 1, 1, 0,
-		0, 1, 0, 0, 0,
-		0, 0, 0, 1, 1,
-		1, 1, 0, 0, 0,]
+	height: 5,
+	width: 4,
+	data: [1, 0, 1, 0, 1,
+		0, 1, 0, 0, 1,
+		1, 0, 0, 1, 1,
+		1, 1, 0, 1, 0,]
 }
 
 await init();
+document.addEventListener("keydown", (e) => {
+	switch (e.key) {
+		case "w":
+			keyWDown = true;
+			break;
+		case "a":
+			keyADown = true;
+			break;
+		case "s":
+			keySDown = true;
+			break;
+		case "d":
+			keyDDown = true;
+			break;
+	}
+});
+document.addEventListener("keyup", (e) => {
+	switch (e.key) {
+		case "w":
+			keyWDown = false;
+			break;
+		case "a":
+			keyADown = false;
+			break;
+		case "s":
+			keySDown = false;
+			break;
+		case "d":
+			keyDDown = false;
+			break;
+	}
+});
 
 window.requestAnimationFrame(gameLoop);
 
@@ -79,35 +111,4 @@ function gameLoop(currentTime) {
 	lastLoopTime = currentTime;
 	window.requestAnimationFrame(gameLoop);
 }
-document.addEventListener("keydown", (e) => {
-	switch (e.key) {
-		case "w":
-			keyWDown = true;
-			break;
-		case "a":
-			keyADown = true;
-			break;
-		case "s":
-			keySDown = true;
-			break;
-		case "d":
-			keyDDown = true;
-			break;
-	}
-});
-document.addEventListener("keyup", (e) => {
-	switch (e.key) {
-		case "w":
-			keyWDown = false;
-			break;
-		case "a":
-			keyADown = false;
-			break;
-		case "s":
-			keySDown = false;
-			break;
-		case "d":
-			keyDDown = false;
-			break;
-	}
-});
+

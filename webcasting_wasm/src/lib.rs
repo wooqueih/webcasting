@@ -10,16 +10,16 @@ extern "C" {
 const DEGREES_IN_RADIANS: f64 = 0.0174533;
 use std::f64::consts::PI;
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 #[wasm_bindgen]
 pub enum Wall {
-    Empty,
-    Wall,
+    Empty = 0,
+    Wall = 1,
 }
 impl TryFrom<f64> for Wall {
     type Error = ();
     fn try_from(value: f64) -> Result<Self, Self::Error> {
-        match value as usize {
+        match value.round() as usize {
             0 => Ok(Wall::Empty),
             1 => Ok(Wall::Wall),
             _ => Err(()),
@@ -62,27 +62,32 @@ struct Map {
 }
 impl Map {
     fn is_wall_at_position(&self, position: Vec2) -> bool {
-        if !(position.x > 0.0
-            && position.x < self.data.len() as f64
-            && position.y > 0.0
-            && position.y < self.data[0].len() as f64)
+        /*log(format!(
+            "lengths | x: {}, y: {}",
+            self.data.len(),
+            self.data[0].len()
+        ));*/
+        if position.x < 0.0
+            || position.x >= self.data.len() as f64
+            || position.y < 0.0
+            || position.y >= self.data[0].len() as f64
         {
             return false;
         }
         let first_index: usize = position.x.trunc() as usize;
         let second_index: usize = position.y.trunc() as usize;
-        //println!("index: {}, {}", first_index, second_index);
+        //log(format!("index: {}, {}", first_index, second_index));
         if self.data[first_index][second_index] == Wall::Empty {
             return false;
         }
-        println!("{} | {}", position.x, position.y);
+        //println!("{} | {}", position.x, position.y);
         return true;
     }
     fn get_wall_at_position(&self, position: Vec2) -> Wall {
-        if !(position.x > 0.0
-            && position.x < self.data.len() as f64
-            && position.y > 0.0
-            && position.y < self.data[0].len() as f64)
+        if position.x < 0.0
+            || position.x >= self.data.len() as f64
+            || position.y < 0.0
+            || position.y >= self.data[0].len() as f64
         {
             return Wall::Empty;
         }
@@ -92,6 +97,7 @@ impl Map {
     }
     fn try_from_js_array(array: Array, width: usize, height: usize) -> Result<Self, ()> {
         let mut data = vec![vec![Wall::Empty; height]; width];
+        let mut s = "".to_string();
         for n in 0..array.length() {
             let Some(value) = array.at(n as i32).as_f64() else {
                 return Err(());
@@ -103,7 +109,12 @@ impl Map {
             let j = n as usize % height;
             //log(format!("n: {} | i: {} | j: {}", n, i, j));
             data[i][j] = value;
+            if j == 0 {
+                s.push_str("\n");
+            }
+            s.push_str(format!("{:?}, ", value).as_str());
         }
+        //log(s);
         return Ok(Map { data });
     }
 }
@@ -138,7 +149,7 @@ impl Canvas {
         self.draw_color = color;
     }
     fn draw_pixel(&mut self, x: usize, y: usize) {
-        if x < 0 || x > self.width || y < 0 || y > self.height {
+        if x > self.width || y > self.height {
             return;
         }
         self.data[4 * (x + y * self.width)] = self.draw_color.r;
@@ -260,8 +271,12 @@ pub fn render(
     fov: f64,
 ) -> Uint8ClampedArray {
     //rendering
-    let mut i = 0;
     let map = Map::try_from_js_array(map_data, map_width, map_height).unwrap();
+    log(format!(
+        "{} | {:?}",
+        map.is_wall_at_position(Vec2 { x: 3.0, y: 0.0 }),
+        map.get_wall_at_position(Vec2 { x: 3.0, y: 0.0 })
+    ));
     let mut canvas = Canvas::new(screen_width, screen_height);
     canvas.set_draw_color(Color::from_rgba(0, 0, 0, 255));
     canvas.clear();
